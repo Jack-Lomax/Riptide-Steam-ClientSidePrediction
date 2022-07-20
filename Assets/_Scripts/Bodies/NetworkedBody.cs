@@ -1,44 +1,55 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System;
 
+[DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody))]
-public abstract class NetworkedBody : MonoBehaviour
+public class NetworkedBody : MonoBehaviour
 {
-	public ushort ID {get; private set;}
-	const uint maxID = 2147483647;
-	private static ushort totalBodyCount;
-	protected Rigidbody rb;
+	private Rigidbody rb;
+	public static event Action OnBodySimulate;
 
-	protected Vector3 velocity;
+	private const uint bufferSize = 1024;
+	private NetworkedBodyState[] stateBuffer = new NetworkedBodyState[bufferSize];
 
-	public virtual void Awake()
+	protected virtual void Awake()
 	{
-		ID = totalBodyCount;
-		totalBodyCount++;
-
 		rb = GetComponent<Rigidbody>();
+		OnBodySimulate += Rewind;
 
 		if(Physics.autoSimulation)
-			Physics.autoSimulation = false;
+			Debug.LogError("[ERROR] Auto Simulation must be disabled to use NetworkedBody");
 	}
 
-	public void SimulatePhysics(float timeStep)
+	public void Simulate()
 	{
-		Activate();
-		Physics.Simulate(timeStep);
-		Deactivate();
+		OnBodySimulate?.Invoke();
+		Physics.Simulate(Time.fixedDeltaTime);
+		stateBuffer[NetworkManager.Singleton.tick % bufferSize] = GetBodyState();
 	}
 
-	private void Activate()
+	void Rewind()
 	{
-		rb.velocity = velocity;
-		rb.isKinematic = false;
+		//TODO: IMPLEMENT
 	}
 
-	private void Deactivate()
+	public NetworkedBodyState GetBodyState()
 	{
-		velocity = rb.velocity;
-		rb.velocity = Vector3.zero;
-		rb.isKinematic = true;
+		return new NetworkedBodyState
+		{
+			position = rb.position,
+			rotation = rb.rotation,
+			velocity = rb.velocity,
+			angularVelocity = rb.angularVelocity,
+		};
+		
+	}
+
+	public struct NetworkedBodyState
+	{
+		public Vector3 position;
+		public Vector3 velocity;
+		public Vector3 angularVelocity;
+		public Quaternion rotation;
 	}
 }
