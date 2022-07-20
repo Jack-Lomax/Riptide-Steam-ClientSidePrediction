@@ -1,5 +1,5 @@
 # Steam-Riptide-Defaults
- A base project used to make Listen-Server games using Riptide.
+ A base project used to make Client-Host (Listen Server) games using Riptide.
 
  Important:
 
