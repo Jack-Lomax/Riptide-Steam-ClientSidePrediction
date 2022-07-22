@@ -1,9 +1,10 @@
 public enum ServerToClient : ushort
 {
-    spawnIdentity = 1
+    spawnPlayer = 1
 }
 
 public enum ClientToServer : ushort
 {
-    spawnIdentity = 1
+    spawnPlayer = 1,
+    playerInput,
 }

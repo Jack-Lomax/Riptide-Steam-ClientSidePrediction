@@ -31,11 +31,13 @@ public class NetworkManager : MonoBehaviour
 	internal Server Server {get; private set;}
 	internal Client Client {get; private set;}
 
-	public uint tick; //TODO: MOVE THIS TO SERVERMANAGER
+	public uint tick {get; private set;} 
+	public event Action OnTick;
+	private float timer;
 
-	public ClientIdentity localIdentityPrefab;
-	public ClientIdentity nonLocalIdentityPrefab;
-	public ServerIdentity serverIdentityPrefab;
+	public ClientPlayer localPlayerPrefab;
+	public ClientPlayer nonLocalPlayerPrefab;
+	public ServerPlayer serverPlayerPrefab;
 
 	public Transform ServerTransform;
 	public Transform ClientTransform;
@@ -71,11 +73,21 @@ public class NetworkManager : MonoBehaviour
 		Client.ClientDisconnected += NonLocalClientDisconnected;
 	}
 
-	void FixedUpdate()
+	void Update()
 	{
-		if(Server.IsRunning)
-			Server.Tick();
-		Client.Tick();
+		if(!(Server.IsRunning || Client.IsConnected)) return;
+		timer += Time.deltaTime;
+		while(timer >= ServerSettings.TICK_DT)
+		{
+			timer -= ServerSettings.TICK_DT;
+
+			if(Server.IsRunning)
+				Server.Tick();
+			if(Client.IsConnected)
+				Client.Tick();
+			OnTick?.Invoke();
+			tick++;
+		}
 	}
 
 	void OnApplicationQuit()
@@ -100,15 +112,15 @@ public class NetworkManager : MonoBehaviour
 	void ClientConnected(object sender, ServerClientConnectedEventArgs e)
 	{
 		//Spawn Non-Local players on the just connected Client.
-		foreach(ServerIdentity identity in ServerIdentity.List.Values)
-			if(identity.Id != e.Client.Id)
-				identity.SendSpawn(e.Client.Id);
+		foreach(ServerPlayer player in ServerPlayer.List.Values)
+			if(player.Id != e.Client.Id)
+				player.SendSpawn(e.Client.Id);
 	}
 
 	void ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
 	{
-		if(ServerIdentity.List.TryGetValue(e.Id, out ServerIdentity identity))
-			Destroy(identity.gameObject);
+		if(ServerPlayer.List.TryGetValue(e.Id, out ServerPlayer player))
+			Destroy(player.gameObject);
 	}
 
 	public void StopServer()
@@ -125,8 +137,8 @@ public class NetworkManager : MonoBehaviour
 
 	private void DestroyAllServerIds()
 	{
-		foreach(ServerIdentity identity in ServerIdentity.List.Values)
-			Destroy(identity.gameObject);
+		foreach(ServerPlayer player in ServerPlayer.List.Values)
+			Destroy(player.gameObject);
 	}
 
 	#endregion
@@ -136,7 +148,7 @@ public class NetworkManager : MonoBehaviour
 	void LocalClientConnected(object sender, EventArgs e)
 	{
 		//Inform the just connected client to send it's data to the server.
-		Message message = Message.Create(MessageSendMode.reliable, ClientToServer.spawnIdentity);
+		Message message = Message.Create(MessageSendMode.reliable, ClientToServer.spawnPlayer);
 		message.Add(Steamworks.SteamFriends.GetPersonaName());
 		message.Add((ulong)Steamworks.SteamUser.GetSteamID());
 		NetworkManager.Singleton.Client.Send(message);
@@ -154,15 +166,15 @@ public class NetworkManager : MonoBehaviour
 
 	void NonLocalClientDisconnected(object sender, ClientDisconnectedEventArgs e)
 	{
-		if(ClientIdentity.List.TryGetValue(e.Id, out ClientIdentity identity))
-			Destroy(identity.gameObject);
+		if(ClientPlayer.List.TryGetValue(e.Id, out ClientPlayer player))
+			Destroy(player.gameObject);
 	}
 
 	private void DestroyAllClientIds()
 	{
-		foreach(ClientIdentity identity in ClientIdentity.List.Values)
-			Destroy(identity.gameObject);
-		ClientIdentity.List.Clear(); //*THIS COULD CAUSE ISSUES, IDK.
+		foreach(ClientPlayer player in ClientPlayer.List.Values)
+			Destroy(player.gameObject);
+		ClientPlayer.List.Clear(); //*THIS COULD CAUSE ISSUES, IDK.
 	}
 
 	#endregion

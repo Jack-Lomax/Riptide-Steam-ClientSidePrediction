@@ -20,10 +20,13 @@ public class LobbyUIManager : MonoBehaviour
     }
 
     [SerializeField] private TMP_InputField lobbyIdField;
+    [SerializeField] private CanvasGroup lobbyGraphics;
+    [SerializeField] private CanvasGroup gameGraphics;
 
     void Awake()
     {
         Singleton = this;
+        SetLobbyGraphicState(true);
     }
 
     public void CreateLobbyClicked()
@@ -34,6 +37,7 @@ public class LobbyUIManager : MonoBehaviour
     public void LeaveLobbyClicked()
     {
         LobbyManager.Singleton.LeaveLobby();
+        SetLobbyGraphicState(true);
     }
 
     public void JoinLobbyClicked()
@@ -47,15 +51,27 @@ public class LobbyUIManager : MonoBehaviour
         LobbyManager.Singleton.JoinLobby(Id);
     }
 
+    void SetLobbyGraphicState(bool state)
+    {
+        lobbyGraphics.alpha = state ? 1 : 0;
+        lobbyGraphics.interactable = state;
+        lobbyGraphics.blocksRaycasts = state;
+
+        state = !state;
+        gameGraphics.alpha = state ? 1 : 0;
+        gameGraphics.interactable = state;
+        gameGraphics.blocksRaycasts = state;
+    }
+
     #region Callbacks
     public void LobbyCreationFailed()
     {
-
+        
     }
 
     public void LobbyCreationSucceeded(ulong lobbyId)
     {
-        
+        SetLobbyGraphicState(false);
     }
 
     public void LobbyEntered()

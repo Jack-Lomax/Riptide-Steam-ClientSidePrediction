@@ -63,12 +63,16 @@ public class LobbyManager : MonoBehaviour
 
         NetworkManager.Singleton.Server.Start(0, 5);
         NetworkManager.Singleton.Client.Connect("127.0.0.1");
-
-        print(lobbyId);
     }
 
     internal void JoinLobby(ulong lobbyId)
     {
+        if((ulong)LobbyManager.Singleton.lobbyId == lobbyId)
+        {
+            Debug.LogWarning("[WARNING] Can't join lobby you're already in.");
+            return;
+        }
+
         SteamMatchmaking.JoinLobby(new CSteamID(lobbyId));
     }
 
@@ -91,8 +95,11 @@ public class LobbyManager : MonoBehaviour
 
     internal void LeaveLobby()
     {
-        NetworkManager.Singleton.StopServer();
+        //*FIXME: THIS COULD BREAK
+        if(NetworkManager.Singleton.Server.IsRunning)
+            NetworkManager.Singleton.StopServer();
         NetworkManager.Singleton.DisconnectAllClients();
         SteamMatchmaking.LeaveLobby(lobbyId);
+        lobbyId = new CSteamID();
     }
 }

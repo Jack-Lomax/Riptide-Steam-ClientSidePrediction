@@ -3,20 +3,20 @@ using RiptideNetworking;
 using System.Collections.Generic;
 using Steamworks;
 
-public class ServerIdentity : Identity 
+public class ServerPlayer : Player 
 {
-    public static Dictionary<ushort, ServerIdentity> List {get; private set;} = new Dictionary<ushort, ServerIdentity>();
+    public static Dictionary<ushort, ServerPlayer> List {get; private set;} = new Dictionary<ushort, ServerPlayer>();
 
     private static void Spawn(ushort Id, string username, ulong steamID)
     {
         Transform parent = NetworkManager.Singleton.ServerTransform;
-        ServerIdentity identity = Instantiate(NetworkManager.Singleton.serverIdentityPrefab, Vector3.zero, Quaternion.identity, parent);
-        identity.Id = Id;
-        identity.username = $"Server Player {Id} ({(username == "" ? "UNKNOWN" : username)})";
-        identity.steamID = new CSteamID(steamID);
+        ServerPlayer player = Instantiate(NetworkManager.Singleton.serverPlayerPrefab, Vector3.zero, Quaternion.identity, parent);
+        player.Id = Id;
+        player.username = $"Server Player {Id} ({(username == "" ? "UNKNOWN" : username)})";
+        player.steamID = new CSteamID(steamID);
 
-        identity.SendSpawn();
-        List.Add(Id, identity);
+        player.SendSpawn();
+        List.Add(Id, player);
     }
 
     void OnDestroy()
@@ -38,7 +38,7 @@ public class ServerIdentity : Identity
 
     Message GetSpawnMessage()
     {
-        Message message = Message.Create(MessageSendMode.reliable, (ushort)ServerToClient.spawnIdentity);
+        Message message = Message.Create(MessageSendMode.reliable, (ushort)ServerToClient.spawnPlayer);
         message.Add(Id);
         message.Add(username);
         message.Add((ulong)steamID);
@@ -49,8 +49,8 @@ public class ServerIdentity : Identity
 
     #region Receiving
 
-    [MessageHandler((ushort)ClientToServer.spawnIdentity)]
-    public static void ReceiveSpawnIdentity(ushort fromClientId, Message message)
+    [MessageHandler((ushort)ClientToServer.spawnPlayer)]
+    private static void ReceiveSpawnPlayer(ushort fromClientId, Message message)
     {
         Spawn(fromClientId, message.GetString(), message.GetULong());
     }
