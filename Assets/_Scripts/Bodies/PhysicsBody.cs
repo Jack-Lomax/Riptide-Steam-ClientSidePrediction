@@ -8,13 +8,12 @@ public abstract class PhysicsBody : MonoBehaviour
 	public Rigidbody rb {get; private set;}
 
 	protected NetworkedBodyState[] stateBuffer = new NetworkedBodyState[ServerSettings.BUFFER_SIZE];
-	[SerializeField] protected Vector3[] statePositions = new Vector3[ServerSettings.BUFFER_SIZE];
 
 	public static EventHandler<RollbackEventArgs> DoRollback;
 	public static EventHandler<StepEventArgs> DoStep;
 	public static Action DoOverrideState;
 
-	protected uint rollbackTick;
+	protected uint localTick;
 
 	protected virtual void OnEnable()
 	{
@@ -22,6 +21,8 @@ public abstract class PhysicsBody : MonoBehaviour
 
 		DoRollback += Rollback;
 		DoOverrideState += OverrideState;
+
+		localTick = 0;
 		
 		for(int i = 0; i < stateBuffer.Length; i++)
 		{
@@ -30,46 +31,54 @@ public abstract class PhysicsBody : MonoBehaviour
 			stateBuffer[i].velocity = rb.velocity;
 			stateBuffer[i].rotation = Quaternion.identity;
 			stateBuffer[i].angularVelocity = rb.angularVelocity;
+			stateBuffer[i].tick = (uint)i;
 		}
 
 		if(Physics.autoSimulation)
 			Debug.LogError("Auto Simulation must be disabled to use NetworkedBody");
-
-		rollbackTick = NetworkManager.Singleton.tick;
 	}
 
-	void Update()
+	public void Reconcile(uint ticksToReconcile)
 	{
-		for(int i = 0; i < ServerSettings.BUFFER_SIZE; i++)
-			statePositions[i] = stateBuffer[i].position;
-	}
-
-	public void Simulate(uint ticksToSimulate = 1)
-	{
-		DoRollback(this, new RollbackEventArgs(this, ticksToSimulate));
-		for(int i = 0; i < ticksToSimulate; i++)
+		DoRollback(this, new RollbackEventArgs(null, ticksToReconcile));
+		for(int i = 0; i < ticksToReconcile; i++)
 		{
-			DoStep(this, new StepEventArgs(this));
-			Physics.Simulate(ServerSettings.TICK_DT);	
+			DoStep(this, new StepEventArgs(null));
+			Physics.Simulate(ServerSettings.TICK_DT);
 			DoOverrideState();
 		}
 	}
 
-	private void Rollback(object sender, RollbackEventArgs e)
+	public void Simulate()
 	{
-		if(e.bodyToIgnore.gameObject == this.gameObject)
-			return;
+		DoRollback(this, new RollbackEventArgs(this, 1));
+		DoStep(this, new StepEventArgs(this));
+		Physics.Simulate(ServerSettings.TICK_DT);	
+		DoOverrideState();
+	}
 
-		uint rewindTick = (rollbackTick - 2) % ServerSettings.BUFFER_SIZE;
-		NetworkedBodyState state = stateBuffer[rewindTick];
+	protected void Rollback(object sender, RollbackEventArgs e)
+	{
+		if(e.bodyToIgnore != null)
+			if(e.bodyToIgnore.gameObject == this.gameObject)
+				return;
+
+		localTick = (localTick - e.ticksToRollback) % ServerSettings.BUFFER_SIZE;
+		NetworkedBodyState state = stateBuffer[localTick];
 		SetBodyState(state);
-		rollbackTick = rewindTick+1;
+	}
+
+	protected virtual void Step(object sender, StepEventArgs e)
+	{
+		if(e.bodyToIgnore != null)
+			if(e.bodyToIgnore.gameObject == this.gameObject)
+				return;
 	}
 
 	private void OverrideState()
 	{
-		stateBuffer[rollbackTick % ServerSettings.BUFFER_SIZE] = GetBodyState();
-		rollbackTick = (rollbackTick + 1) % ServerSettings.BUFFER_SIZE;
+		localTick++;
+		stateBuffer[localTick % ServerSettings.BUFFER_SIZE] = GetBodyState();
 	}
 
 	protected virtual void OnDisable()

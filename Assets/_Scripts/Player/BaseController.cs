@@ -12,11 +12,10 @@ public class BaseController : PhysicsBody
             inputPayloadBuffer[i] = new InputPayload();
     }
 
-    private void Step(object sender, StepEventArgs e)
+    protected override void Step(object sender, StepEventArgs e)
 	{
-        if(e.bodyToIgnore.gameObject == this.gameObject)
-            return;
-        Move(inputPayloadBuffer[rollbackTick % ServerSettings.BUFFER_SIZE]);
+        base.Step(sender, e);
+        Move(inputPayloadBuffer[(localTick - 1) % ServerSettings.BUFFER_SIZE]);
 	}
 
     protected void Move(InputPayload inputPayload)
