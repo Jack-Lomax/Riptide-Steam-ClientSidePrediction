@@ -4,7 +4,7 @@
 ### <ins>Includes</ins>:
     - A minimalist system for connecting and spawning clients using the Riptide-SteamTransport.
     - A Rigidbody rollback system to allow synced physics.
-    - A basic Client-Side Prediction implementation using the Rigidbody rollback system.
+    - (coming soon) A basic Client-Side Prediction implementation using the Rigidbody rollback system. 
 
 
  Important:
