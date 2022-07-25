@@ -22,9 +22,11 @@ public class GenericBody : PhysicsBody
 		rb.velocity = Movement.Gravity(rb.velocity, ServerSettings.TICK_DT);
 	}
 
-	protected override void Step(object sender, StepEventArgs e)
+	private void Step(object sender, StepEventArgs e)
 	{
-        base.Step(sender, e);
+        if(e.bodyToIgnore != null)
+			if(e.bodyToIgnore.gameObject == this.gameObject)
+				return;
         Move();
 	}
 

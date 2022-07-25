@@ -68,13 +68,6 @@ public abstract class PhysicsBody : MonoBehaviour
 		SetBodyState(state);
 	}
 
-	protected virtual void Step(object sender, StepEventArgs e)
-	{
-		if(e.bodyToIgnore != null)
-			if(e.bodyToIgnore.gameObject == this.gameObject)
-				return;
-	}
-
 	private void OverrideState()
 	{
 		localTick++;
@@ -103,7 +96,7 @@ public abstract class PhysicsBody : MonoBehaviour
 			velocity = rb.velocity,
 			rotation = rb.rotation,
 			angularVelocity = rb.angularVelocity,
-			tick = NetworkManager.Singleton.tick,
+			tick = localTick,
 		};
 	}
 }

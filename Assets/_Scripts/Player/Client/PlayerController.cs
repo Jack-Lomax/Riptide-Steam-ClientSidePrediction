@@ -11,8 +11,6 @@ public class PlayerController : BaseController
 	//*MODIFIERS
 	public bool canMove = true;
 
-	//TODO: Figure out how to reconcile n ticks
-
 	protected override void OnEnable()
 	{
 		base.OnEnable();
