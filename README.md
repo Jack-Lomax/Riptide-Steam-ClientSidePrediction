@@ -1,6 +1,12 @@
 # Steam-Riptide-Defaults
  A base project used to make Client-Host (Listen Server) games using Riptide.
 
+ __Includes__:
+    - A minimalist system for connecting and spawning clients using the Riptide-SteamTransport.
+    - A Rigidbody rollback system to allow synced physics.
+    - A basic Client-Side Prediction implementation using the Rigidbody rollback system.
+
+
  Important:
 
  - Server and Client Physics objects should be set to ignore collisions with one another. This can be achieved with the collision matrix.
