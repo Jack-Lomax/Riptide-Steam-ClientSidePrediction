@@ -592,6 +592,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Test
       objectReference: {fileID: 0}
+    - target: {fileID: 2775408733457340036, guid: 7886592354429a94e93cf623379511ea, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2775408733457340040, guid: 7886592354429a94e93cf623379511ea, type: 3}
       propertyPath: m_RootOrder
       value: 4

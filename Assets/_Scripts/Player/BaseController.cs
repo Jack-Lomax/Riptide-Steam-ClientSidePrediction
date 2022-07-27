@@ -4,6 +4,11 @@ public class BaseController : PhysicsBody
 {
     protected InputPayload[] inputPayloadBuffer = new InputPayload[ServerSettings.BUFFER_SIZE];
 
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
     protected override void OnEnable()
     {
         base.OnEnable();

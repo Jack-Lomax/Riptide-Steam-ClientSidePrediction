@@ -7,9 +7,15 @@ public class PlayerController : BaseController
 {	
 	//*INPUT
 	[SerializeField] PlayerInput input;
+	private List<NetworkedBodyState> correctedStates = new List<NetworkedBodyState>();
 
 	//*MODIFIERS
 	public bool canMove = true;
+
+	protected override void Awake()
+	{
+		base.Awake();
+	}
 
 	protected override void OnEnable()
 	{
@@ -19,7 +25,11 @@ public class PlayerController : BaseController
 
 	private void TickLoop()
 	{
+		if(correctedStates.Count > 0)
+			CheckReconcile();
+
 		InputPayload inputPayload = GenerateInputs();
+		SendPlayerInput(inputPayload);
 		Move(inputPayload);
 		Simulate();
 	}
@@ -28,15 +38,33 @@ public class PlayerController : BaseController
 	{
 		InputPayload inputPayload = new InputPayload
 		{
+			tick = localTick % ServerSettings.BUFFER_SIZE,
 			xInput = input.xInput,
 			zInput = input.zInput,
 		};
 
-		uint bufferSlot = NetworkManager.Singleton.tick % ServerSettings.BUFFER_SIZE;
 		InputPayload inputBuffer = canMove ? inputPayload : new InputPayload();
-		inputPayloadBuffer[bufferSlot] = inputBuffer;	
+		inputPayloadBuffer[inputPayload.tick] = inputBuffer;	
 	
 		return inputPayload;
+	}
+
+	private void CheckReconcile()
+	{
+		const float acceptableThreshold = 0.1f;
+		foreach(var state in correctedStates)
+		{
+			if(Vector3.Distance(state.position, stateBuffer[state.tick % ServerSettings.BUFFER_SIZE].position) > acceptableThreshold)
+			{
+				Reconcile(localTick - state.tick);
+			}
+		}
+		correctedStates.Clear();
+	}
+
+	public void AddCorrectedState(NetworkedBodyState state)
+	{
+		correctedStates.Add(state);
 	}
 
 	protected override void OnDisable()
@@ -45,12 +73,41 @@ public class PlayerController : BaseController
 		NetworkManager.Singleton.OnTick -= TickLoop;
 	}
 
+	#region Sending
+
 	void SendPlayerInput(InputPayload inputPayload)
 	{
 		Message message = Message.Create(MessageSendMode.unreliable, ClientToServer.playerInput);
-		message.AddByte((byte)inputPayload.xInput);
-		message.AddByte((byte)inputPayload.zInput);
+		message.Add(inputPayload.tick);
+		message.Add((byte)inputPayload.xInput);
+		message.Add((byte)inputPayload.zInput);
 		NetworkManager.Singleton.Client.Send(message);
 	}
+
+	#endregion
+
+	#region Receiving
+
+	[MessageHandler((ushort)ServerToClient.correctedState)]
+	private static void ReceiveCorrectedState(Message message)
+	{
+		ushort id = message.GetUShort();
+		NetworkedBodyState state = new NetworkedBodyState()
+		{
+			tick = message.GetUInt(),
+			position = message.GetVector3(),
+			velocity = message.GetVector3(),
+			rotation = message.GetQuaternion(),
+			angularVelocity = message.GetVector3(),
+		};
+
+		if(ClientPlayer.List.TryGetValue(id, out ClientPlayer player))
+		{
+			if(ClientPlayer.localPlayer.Id == id)
+				player.GetComponent<PlayerController>().AddCorrectedState(state);
+		}
+	}
+
+	#endregion
 
 }

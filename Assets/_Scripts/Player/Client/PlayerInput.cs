@@ -14,6 +14,7 @@ public class PlayerInput : MonoBehaviour
 
 public class InputPayload
 {
+    public uint tick;
     public sbyte xInput;
     public sbyte zInput;
 }

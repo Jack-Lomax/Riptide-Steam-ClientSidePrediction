@@ -5,12 +5,14 @@ using Steamworks;
 
 public class ServerPlayer : Player 
 {
+    public static Vector3 spawnPoint = new Vector3(0, 5, 0);
+
     public static Dictionary<ushort, ServerPlayer> List {get; private set;} = new Dictionary<ushort, ServerPlayer>();
 
     private static void Spawn(ushort Id, string username, ulong steamID)
     {
         Transform parent = NetworkManager.Singleton.ServerTransform;
-        ServerPlayer player = Instantiate(NetworkManager.Singleton.serverPlayerPrefab, Vector3.zero, Quaternion.identity, parent);
+        ServerPlayer player = Instantiate(NetworkManager.Singleton.serverPlayerPrefab, spawnPoint, Quaternion.identity, parent);
         player.Id = Id;
         player.username = $"Server Player {Id} ({(username == "" ? "UNKNOWN" : username)})";
         player.steamID = new CSteamID(steamID);

@@ -15,13 +15,16 @@ public abstract class PhysicsBody : MonoBehaviour
 
 	protected uint localTick;
 
-	protected virtual void OnEnable()
+	protected virtual void Awake()
 	{
 		rb = GetComponent<Rigidbody>();
 
 		DoRollback += Rollback;
 		DoOverrideState += OverrideState;
+	}
 
+	protected virtual void OnEnable()
+	{
 		localTick = 0;
 		
 		for(int i = 0; i < stateBuffer.Length; i++)
@@ -40,6 +43,7 @@ public abstract class PhysicsBody : MonoBehaviour
 
 	public void Reconcile(uint ticksToReconcile)
 	{
+		Debug.Log("Reconciling " + name);
 		DoRollback(this, new RollbackEventArgs(null, ticksToReconcile));
 		for(int i = 0; i < ticksToReconcile; i++)
 		{
@@ -71,7 +75,8 @@ public abstract class PhysicsBody : MonoBehaviour
 	private void OverrideState()
 	{
 		localTick++;
-		stateBuffer[localTick % ServerSettings.BUFFER_SIZE] = GetBodyState();
+		localTick %= ServerSettings.BUFFER_SIZE;
+		stateBuffer[localTick] = GetBodyState();
 	}
 
 	protected virtual void OnDisable()
