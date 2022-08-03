@@ -1,7 +1,7 @@
 # Steam-Riptide-Defaults
  A base project used to make Client-Host (Listen Server) games using Riptide.
 
-### <ins>Includes</ins>:
+### <u>Contents</u>:
     - A minimalist system for connecting and spawning clients using the Riptide-SteamTransport.
     - A Rigidbody rollback system to allow synced physics.
     - A basic Client-Side Prediction implementation using the Rigidbody rollback system. 
