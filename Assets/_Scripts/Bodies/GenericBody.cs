@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//*TODO: Create a SyncedBody that uses an authoritive version on the server.
+
 public class GenericBody : PhysicsBody
 {
     protected override void Awake()

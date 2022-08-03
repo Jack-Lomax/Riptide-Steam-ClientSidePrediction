@@ -72,6 +72,7 @@ public class LobbyUIManager : MonoBehaviour
     public void LobbyCreationSucceeded(ulong lobbyId)
     {
         SetLobbyGraphicState(false);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(1);
     }
 
     public void LobbyEntered()
