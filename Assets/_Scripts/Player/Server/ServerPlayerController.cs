@@ -22,7 +22,7 @@ public class ServerPlayerController : BaseController
 
     void TickLoop()
     {
-        if(inputsToValidate.Count > 0)
+        while(inputsToValidate.Count > 0)
         {
             InputPayload inputToValidate = inputsToValidate[0];
             inputPayloadBuffer[inputToValidate.tick % ServerSettings.BUFFER_SIZE] = inputToValidate;

@@ -67,15 +67,15 @@ public abstract class PhysicsBody : MonoBehaviour
 			if(e.bodyToIgnore.gameObject == this.gameObject)
 				return;
 
-		localTick = (localTick - e.ticksToRollback) % ServerSettings.BUFFER_SIZE;
-		NetworkedBodyState state = stateBuffer[localTick];
+		localTick = (localTick - e.ticksToRollback);
+		NetworkedBodyState state = stateBuffer[localTick % ServerSettings.BUFFER_SIZE];
 		SetBodyState(state);
 	}
 
 	private void OverrideState()
 	{
 		localTick++;
-		localTick %= ServerSettings.BUFFER_SIZE;
+		localTick = localTick % ServerSettings.BUFFER_SIZE;
 		stateBuffer[localTick] = GetBodyState();
 	}
 
@@ -101,7 +101,7 @@ public abstract class PhysicsBody : MonoBehaviour
 			velocity = rb.velocity,
 			rotation = rb.rotation,
 			angularVelocity = rb.angularVelocity,
-			tick = localTick,
+			tick = localTick % ServerSettings.BUFFER_SIZE,
 		};
 	}
 }

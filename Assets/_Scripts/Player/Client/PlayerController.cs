@@ -5,11 +5,9 @@ using RiptideNetworking;
 
 public class PlayerController : BaseController
 {	
-	//*INPUT
 	[SerializeField] PlayerInput input;
 	private List<NetworkedBodyState> correctedStates = new List<NetworkedBodyState>();
 
-	//*MODIFIERS
 	public bool canMove = true;
 
 	protected override void Awake()
@@ -25,13 +23,16 @@ public class PlayerController : BaseController
 
 	private void TickLoop()
 	{
-		if(correctedStates.Count > 0)
-			CheckReconcile();
-
 		InputPayload inputPayload = GenerateInputs();
 		SendPlayerInput(inputPayload);
 		Move(inputPayload);
 		Simulate();
+	}
+
+	void Update()
+	{
+		while(correctedStates.Count > 0)
+			CheckReconcile();
 	}
 
 	InputPayload GenerateInputs()
@@ -51,15 +52,25 @@ public class PlayerController : BaseController
 
 	private void CheckReconcile()
 	{
-		const float acceptableThreshold = 0.1f;
-		foreach(var state in correctedStates)
+		const float maxPositionDelta = 0.0000001f;
+
+		NetworkedBodyState state = correctedStates[0];
+		correctedStates.RemoveAt(0);
+
+		Vector3 positionDelta = (state.position - stateBuffer[state.tick % ServerSettings.BUFFER_SIZE].position);
+		if(positionDelta.sqrMagnitude > maxPositionDelta)
 		{
-			if(Vector3.Distance(state.position, stateBuffer[state.tick % ServerSettings.BUFFER_SIZE].position) > acceptableThreshold)
+
+			if (positionDelta.sqrMagnitude >= 0.1f)
 			{
-				Reconcile(localTick - state.tick);
+				rb.position = state.position;
+				rb.rotation = state.rotation;
+				rb.velocity = state.velocity;
+				rb.angularVelocity = state.angularVelocity;
+				stateBuffer[state.tick % ServerSettings.BUFFER_SIZE] = state;
 			}
+			Reconcile((localTick % ServerSettings.BUFFER_SIZE) - state.tick);
 		}
-		correctedStates.Clear();
 	}
 
 	public void AddCorrectedState(NetworkedBodyState state)
