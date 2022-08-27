@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour 
+public class TickManager : MonoBehaviour 
 {
     void Start()
     {
@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     void TickLoop()
     {
-
+        
     }
 
     private void OnDestroy() 
