@@ -3,6 +3,9 @@ using UnityEngine;
 public class BaseController : PhysicsBody 
 {
     protected InputPayload[] inputPayloadBuffer = new InputPayload[ServerSettings.BUFFER_SIZE];
+    //*THIS IS NEEDED AS WHEN THE GAME STARTS, THE GRAVITY IS APPLIED TO THE SERVER PLAYER
+    //*EVEN WHEN THERE HAS BEEN NO INPUT LEADING TO AN INCONSISTENCY IN STATE.
+    protected bool canSimulate = true;
 
     protected override void Awake()
     {
@@ -19,6 +22,8 @@ public class BaseController : PhysicsBody
 
     private void Step(object sender, StepEventArgs e)
 	{
+        if(!canSimulate) return;
+
         if(e.bodyToIgnore != null)
 			if(e.bodyToIgnore.gameObject == this.gameObject)
 				return;

@@ -17,6 +17,7 @@ public class ServerPlayerController : BaseController
     protected override void OnEnable()
     {
         base.OnEnable();
+        canSimulate = false;
         NetworkManager.Singleton.OnTick += TickLoop;
     }
 
@@ -24,6 +25,7 @@ public class ServerPlayerController : BaseController
     {
         while(inputsToValidate.Count > 0)
         {
+            canSimulate = true;
             InputPayload inputToValidate = inputsToValidate[0];
             inputPayloadBuffer[inputToValidate.tick % ServerSettings.BUFFER_SIZE] = inputToValidate;
             inputsToValidate.RemoveAt(0);

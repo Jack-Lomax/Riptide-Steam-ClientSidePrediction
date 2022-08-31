@@ -23,16 +23,13 @@ public class PlayerController : BaseController
 
 	private void TickLoop()
 	{
+		while(correctedStates.Count > 0)
+			CheckReconcile();
+
 		InputPayload inputPayload = GenerateInputs();
 		SendPlayerInput(inputPayload);
 		Move(inputPayload);
 		Simulate();
-	}
-
-	void Update()
-	{
-		while(correctedStates.Count > 0)
-			CheckReconcile();
 	}
 
 	InputPayload GenerateInputs()
