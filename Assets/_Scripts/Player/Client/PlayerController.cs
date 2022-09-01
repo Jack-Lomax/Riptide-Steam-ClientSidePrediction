@@ -66,7 +66,7 @@ public class PlayerController : BaseController
 				rb.angularVelocity = state.angularVelocity;
 				stateBuffer[state.tick % ServerSettings.BUFFER_SIZE] = state;
 			}
-			Reconcile((localTick % ServerSettings.BUFFER_SIZE) - state.tick);
+			Reconcile((localTick - state.tick) % ServerSettings.BUFFER_SIZE);
 		}
 	}
 
