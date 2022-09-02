@@ -1,4 +1,4 @@
-# Steam-Riptide-Defaults
+# Riptide Steam Client Side Prediction
  A base project used to make Client-Host (Listen Server) games using Riptide.
 
 ### <u>Contents</u>:
