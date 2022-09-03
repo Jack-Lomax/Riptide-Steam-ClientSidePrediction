@@ -55,17 +55,14 @@ public class PlayerController : BaseController
 		correctedStates.RemoveAt(0);
 
 		Vector3 positionDelta = (state.position - stateBuffer[state.tick % ServerSettings.BUFFER_SIZE].position);
+		if(posDelta.sqrMagnitude >= .02f)
+		{
+			if(debug)
+				Debug.Log("Large Desync.");
+			stateBuffer[state.tick % GameSettings.Singleton.BUFFER_SIZE] = state;
+		}
 		if(positionDelta.sqrMagnitude > maxPositionDelta)
 		{
-
-			if (positionDelta.sqrMagnitude >= 0.1f)
-			{
-				rb.position = state.position;
-				rb.rotation = state.rotation;
-				rb.velocity = state.velocity;
-				rb.angularVelocity = state.angularVelocity;
-				stateBuffer[state.tick % ServerSettings.BUFFER_SIZE] = state;
-			}
 			Reconcile((localTick - state.tick) % ServerSettings.BUFFER_SIZE);
 		}
 	}
