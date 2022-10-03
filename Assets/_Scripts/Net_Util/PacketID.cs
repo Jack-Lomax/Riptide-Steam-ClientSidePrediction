@@ -1,6 +1,7 @@
 public enum ServerToClient : ushort
 {
     spawnPlayer = 1,
+    syncBody,
     correctedState
 }
 
