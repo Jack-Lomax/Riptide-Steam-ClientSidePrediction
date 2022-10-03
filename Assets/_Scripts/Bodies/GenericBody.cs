@@ -18,7 +18,7 @@ public class GenericBody : PhysicsBody
         NetworkManager.Singleton.OnTick += TickLoop;
     }
 
-    void TickLoop()
+    protected virtual void TickLoop()
     {
         Move();
         Simulate();
