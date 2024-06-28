@@ -11,5 +11,5 @@
 
  - Server and Client Physics objects should be set to ignore collisions with one another. This can be achieved with the collision matrix.
  - Auto Simulation must be disabled in the project. This is done by default in the NetworkBody class.
- - Enhanced Determinism allows for deterministic physics. This is crucial! Even though enhanced determinism is worse for performance, the amount of reconciliations that will not occur due to it far outweighs the performance defecit.
+ - Enhanced Determinism allows for (almost) deterministic physics. This is crucial! Even though enhanced determinism is worse for performance, the amount of reconciliations that will not occur due to it far outweighs the performance defecit.
  - Due to timestep inconsistencies with collisions, generic bodies are not deterministic between clients. I am working on a fix for this.
